@@ -49,7 +49,11 @@ public class QiPan {
      * @return 落子是否合法 如果合法返回true 落子成功 否则落子失败
      */
     public boolean put(int r,int c,int playerid){
-
+        if(canPut(r,c,playerid)){
+            matrix[r][c]=playerid;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -60,8 +64,11 @@ public class QiPan {
      * @return 是否可以
      */
     public boolean canPut(int r,int c,int playerid){
-        return true;
+        if(matrix[r][c]==Empty) return true;
+        return false;
     }
+
+
     ///玩家相关部分
     List<Integer> winners=new ArrayList<>();
     List<IPlayer> players=new ArrayList<>();
@@ -82,12 +89,23 @@ public class QiPan {
             players.get(i).init(this,i);
         }
     }
+
+
     ///回合相关部分
+    int now_playerid=0;
     /**
      * 通知下一个玩家放子 如果所有玩家都放完 就返回false 否则返回true
      * @return 是否成功，如果所有玩家都放完了子就返回false 此时需要执行step函数开始下一回合
      */
     public boolean next(){
+        //这里处理 没有玩家直接就是false的情况
+        if(now_playerid==players.size()) return false;
+        //通知下一个玩家放子
+        IPlayer player=players.get(now_playerid);
+        player.action();
+        now_playerid++;
+        //这里返回下一次有没有玩家可供调动
+        if(now_playerid==players.size()) return false;
         return true;
     }
 
@@ -96,7 +114,10 @@ public class QiPan {
      * @return 是否有玩家取胜
      */
     public boolean step(){
-
+        now_playerid=0;
+        scanWinners();
+        if(this.winners.size()!=0) return true;
+        else return false;
     }
 
     /**
@@ -108,16 +129,29 @@ public class QiPan {
         int[] ret=new int[winners.size()];
         return ret;
     }
+
+    /**
+     * 扫描所有胜利者 并将其加入winner列表
+     */
+    protected void scanWinners(){
+        return;
+    }
+
+
     ///游戏控制
 
     /**
      * 开始游戏
      */
-    public void start(){
+    public void start(int timeout) throws InterruptedException {
         this.initPlayers();
         int[] winner=null;
-        for(int i=0;this.step();++i){
+        for(int i=0;!this.step();++i){
             System.out.printf("当前第%d回合\n",i);
+            do{
+                System.out.printf("玩家 %s 执棋\n",players.get(now_playerid).getName());
+            }while (this.next());
+            if(timeout!=0) Thread.sleep(timeout);
         }
         //结束
         winner=this.getWinners();
@@ -125,5 +159,8 @@ public class QiPan {
         for(IPlayer player:players){
             System.out.println(player.getName());
         }
+    }
+    public void start() throws InterruptedException {
+        start(0);
     }
 }
