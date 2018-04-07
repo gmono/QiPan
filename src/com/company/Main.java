@@ -20,6 +20,22 @@ public class Main {
         };
         QiPan qiPan=new QiPan(10,10);
         qiPan.addPlayer(player);
+        qiPan.addPlayer(new IPlayer() {
+            @Override
+            public void init(QiPan qiPan, int playerid) {
+                System.out.println("初始化玩家2");
+            }
+
+            @Override
+            public void action() {
+                System.out.println("执行动作2");
+            }
+
+            @Override
+            public String getName() {
+                return "测试玩家2";
+            }
+        });
         qiPan.start(1000);
     }
 }

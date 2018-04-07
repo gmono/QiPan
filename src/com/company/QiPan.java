@@ -101,11 +101,19 @@ public class QiPan {
         //这里处理 没有玩家直接就是false的情况
         if(now_playerid==players.size()) return false;
         //通知下一个玩家放子
+        //动作执行信号
+        actionStart();
         IPlayer player=players.get(now_playerid);
         player.action();
+        //动作结束信号
+        actionEnd();
         now_playerid++;
         //这里返回下一次有没有玩家可供调动
-        if(now_playerid==players.size()) return false;
+        if(now_playerid==players.size()){
+            //回合结束 发送回合结束信号
+            stepEnd();
+            return false;
+        }
         return true;
     }
 
@@ -116,6 +124,8 @@ public class QiPan {
     public boolean step(){
         now_playerid=0;
         scanWinners();
+        //新回合开始信号
+        stepStart();
         if(this.winners.size()!=0) return true;
         else return false;
     }
@@ -146,11 +156,14 @@ public class QiPan {
     public void start(int timeout) throws InterruptedException {
         this.initPlayers();
         int[] winner=null;
+        //游戏开始信号
+        gameStart();
         for(int i=0;!this.step();++i){
             System.out.printf("当前第%d回合\n",i);
             do{
                 System.out.printf("玩家 %s 执棋\n",players.get(now_playerid).getName());
             }while (this.next());
+            System.out.printf("回合%d结束\n\n",i);
             if(timeout!=0) Thread.sleep(timeout);
         }
         //结束
@@ -159,8 +172,23 @@ public class QiPan {
         for(IPlayer player:players){
             System.out.println(player.getName());
         }
+        //游戏结束信号
+        gameOver();
     }
     public void start() throws InterruptedException {
         start(0);
     }
+    ///观察者相关
+    List<IView> views=new ArrayList<>();
+    public void addView(IView view){
+        views.add(view);
+        view.init(this);;
+    }
+    //信号组
+    protected void gameStart(){views.forEach(IView::gameStart);}
+    protected void stepStart(){views.forEach(IView::stepStart);}
+    protected void stepEnd(){views.forEach(IView::stepEnd);}
+    protected void actionStart(){views.forEach((IView v)->v.actionStart(now_playerid));}
+    protected void actionEnd(){views.forEach((IView v)->v.actionEnd(now_playerid));}
+    protected void gameOver(){views.forEach((IView v)->v.gameOver(this.getWinners()));}
 }
