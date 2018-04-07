@@ -9,4 +9,10 @@ public class Wuziqi extends QiPan {
     protected void scanWinners() {
         return;
     }
+
+    @Override
+    public boolean canPut(int r, int c, int playerid) {
+        if(matrix[r][c]==Empty) return true;
+        return false;
+    }
 }

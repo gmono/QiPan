@@ -63,10 +63,7 @@ public abstract class QiPan {
      * @param playerid 玩家id
      * @return 是否可以
      */
-    public boolean canPut(int r,int c,int playerid){
-        if(matrix[r][c]==Empty) return true;
-        return false;
-    }
+    public abstract boolean canPut(int r,int c,int playerid);
 
 
     ///玩家相关部分
