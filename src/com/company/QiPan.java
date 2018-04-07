@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 棋盘容器 主要用于存储和管理规则
  */
-public class QiPan {
+public abstract class QiPan {
     static final int Empty=-1;
     int[][] matrix=null;
     static public void initmatrix(int[][] matrix,int rows,int cols,int value){
@@ -123,6 +123,7 @@ public class QiPan {
      */
     public boolean step(){
         now_playerid=0;
+        //执行规则 扫描是否有胜利者
         scanWinners();
         //新回合开始信号
         stepStart();
@@ -141,12 +142,22 @@ public class QiPan {
     }
 
     /**
-     * 扫描所有胜利者 并将其加入winner列表
+     * 强制设置胜利者
+     * @param winners 胜利者
      */
-    protected void scanWinners(){
-        return;
+    public void setWinners(int[] winners){
+        //转换
+        List<Integer> ws=new ArrayList<>();
+        for(int i:winners){
+            ws.add(i);
+        }
+        this.winners=ws;
     }
-
+    /**
+     * 扫描所有胜利者 并将其加入winner列表
+     * 在此处添加取胜规则
+     */
+    protected abstract void scanWinners();
 
     ///游戏控制
 
@@ -158,19 +169,9 @@ public class QiPan {
         int[] winner=null;
         //游戏开始信号
         gameStart();
-        for(int i=0;!this.step();++i){
-            System.out.printf("当前第%d回合\n",i);
-            do{
-                System.out.printf("玩家 %s 执棋\n",players.get(now_playerid).getName());
-            }while (this.next());
-            System.out.printf("回合%d结束\n\n",i);
+        while(!this.step()){
+            while(this.next());
             if(timeout!=0) Thread.sleep(timeout);
-        }
-        //结束
-        winner=this.getWinners();
-        System.out.printf("游戏结束！以下玩家取胜:\n");
-        for(IPlayer player:players){
-            System.out.println(player.getName());
         }
         //游戏结束信号
         gameOver();
