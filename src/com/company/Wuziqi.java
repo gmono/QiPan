@@ -11,8 +11,8 @@ public class Wuziqi extends QiPan {
     }
 
     @Override
-    public boolean canPut(int r, int c, int playerid) {
-        if(matrix[r][c]==Empty) return true;
+    public boolean canPut(int r, int c, int playerid,int qid) {
+        if(p_matrix[r][c]==Empty) return true;
         return false;
     }
 }

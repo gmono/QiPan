@@ -1,5 +1,8 @@
 package com.company;
 
+/**
+ * 玩家接口 玩家用于执行棋盘动作并查看棋盘
+ */
 public interface IPlayer {
     /**
      * 初始化玩家对象
@@ -15,6 +18,7 @@ public interface IPlayer {
 
     /**
      * 取玩家名
+     * @return 玩家名称
      */
     String getName();
 }

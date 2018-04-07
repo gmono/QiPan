@@ -10,35 +10,51 @@ import java.util.List;
  */
 public abstract class QiPan {
     static final int Empty=-1;
-    int[][] matrix=null;
-    static public void initmatrix(int[][] matrix,int rows,int cols,int value){
-        for(int i=0;i<rows;++i){
-            for(int j=0;j<cols;++j){
+    //玩家矩阵 每个值表示此位置上的子的所属玩家id
+    protected int[][] p_matrix=null;
+    //棋子矩阵 每个值表示此位置上的子的类型id
+    protected int[][] l_matrix=null;
+    static protected void initmatrix(int[][] matrix,int value){
+        for(int i=0;i<matrix.length;++i){
+            for(int j=0;j<matrix[0].length;++j){
                 matrix[i][j]=value;
             }
         }
     }
     public QiPan(int rows,int cols){
-        matrix=new int[rows][cols];
-        initmatrix(matrix,rows,cols,Empty);
+        p_matrix=new int[rows][cols];
+        l_matrix=new int[rows][cols];
+        initmatrix(p_matrix,Empty);
+        initmatrix(l_matrix,Empty);
     }
     ///棋盘相关部分
     /**
      * 设置棋盘状态
-     * @param mat 新棋盘矩阵
+     * @param player_mat 新棋盘矩阵
      */
-    public void setQiPan(int[][] mat){
-        if(mat.length==matrix.length&&mat[0].length==matrix[0].length){
-            this.matrix=mat.clone();
+    public void setQiPan(int[][] player_mat,int[][] qizi_mat){
+        if(player_mat.length==p_matrix.length&&player_mat[0].length==p_matrix[0].length){
+            if(qizi_mat.length==l_matrix.length&&qizi_mat[0].length==l_matrix[0].length) {
+                this.p_matrix = player_mat.clone();
+                this.l_matrix=qizi_mat.clone();
+            }
         }
     }
 
     /**
-     * 得到棋盘矩阵
-     * @return 棋盘矩阵（不可修改）
+     * 得到棋盘矩阵（用户）
+     * @return 棋盘矩阵（不可修改） 表示每个位置上的棋子所属用户id
      */
-    public final int[][] getQiPan(){
-        return this.matrix;
+    public final int[][] getPlayer_QiPan(){
+        return this.p_matrix;
+    }
+
+    /**
+     * 得到棋盘矩阵（棋子类型）
+     * @return 棋盘矩阵（不可修改） 表示每个位置上的棋子类型
+     */
+    public final int[][] getQizi_QiPan(){
+        return this.l_matrix;
     }
 
     /**
@@ -46,14 +62,26 @@ public abstract class QiPan {
      * @param r 行
      * @param c 列
      * @param playerid 玩家id
+     * @param qid 棋子类型id
      * @return 落子是否合法 如果合法返回true 落子成功 否则落子失败
      */
-    public boolean put(int r,int c,int playerid){
-        if(canPut(r,c,playerid)){
-            matrix[r][c]=playerid;
+    public boolean put(int r,int c,int playerid,int qid){
+        if(canPut(r,c,playerid,qid)){
+            p_matrix[r][c]=playerid;
+            l_matrix[r][c]=qid;
             return true;
         }
         return false;
+    }
+
+    /**
+     * 获取指定位置的棋子信息
+     * @param r 行
+     * @param c 列
+     * @return 数组 {所属用户id,棋子类型}
+     */
+    public int[] get(int r,int c){
+        return new int[]{p_matrix[r][c],l_matrix[r][c]};
     }
 
     /**
@@ -61,14 +89,15 @@ public abstract class QiPan {
      * @param r 行
      * @param c 列
      * @param playerid 玩家id
+     * @param qid 棋子类型id
      * @return 是否可以
      */
-    public abstract boolean canPut(int r,int c,int playerid);
+    public abstract boolean canPut(int r,int c,int playerid,int qid);
 
 
     ///玩家相关部分
-    List<Integer> winners=new ArrayList<>();
-    List<IPlayer> players=new ArrayList<>();
+    protected List<Integer> winners=new ArrayList<>();
+    protected List<IPlayer> players=new ArrayList<>();
     /**
      * 添加玩家
      * @param player 玩家对象
@@ -160,6 +189,7 @@ public abstract class QiPan {
 
     /**
      * 开始游戏
+     * @param timeout 每回合停顿时间
      */
     public void start(int timeout) throws InterruptedException {
         this.initPlayers();
@@ -173,11 +203,20 @@ public abstract class QiPan {
         //游戏结束信号
         gameOver();
     }
+
+    /**
+     * 开始游戏 停顿时间为0
+     */
     public void start() throws InterruptedException {
         start(0);
     }
     ///观察者相关
     List<IView> views=new ArrayList<>();
+
+    /**
+     * 添加观察者
+     * @param view 观察者对象
+     */
     public void addView(IView view){
         views.add(view);
         view.init(this);;
